@@ -1,9 +1,10 @@
+from __future__ import annotations
 import os
+import sys
 import shutil
 import atexit
 import importlib
 import subprocess
-import sys
 from pathlib import Path
 from typing import Sequence
 
