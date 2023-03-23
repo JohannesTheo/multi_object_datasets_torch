@@ -230,3 +230,82 @@ class MultiObjectDataset(VisionDataset):
         self.h5_file = tmp_h5_file.rename(self.h5_file)
 
         # TODO: Remove tfrecord files afterwards to save disk space?
+
+
+class CaterWithMasks(MultiObjectDataset):
+
+    def __init__(self, root, split='Train', ttv=[39364, 17100, 0], download=True, convert=True) -> None:
+
+        if ttv != [39364, 17100, 0]:
+            print(f"WARNING: The intended train,test,val split is: [39364, 17100, 0] but you requested {ttv}")
+
+        super().__init__(root=root, dataset="cater_with_masks", version=None, split=split, ttv=ttv,
+                         tf_files=[f"cater_with_masks_{t}.tfrecords-{str(i).rjust(5, '0')}-of-00100" for
+                                   t in ("train", "test") for i in range(0, 100)],
+                         tf_max_size=56464,
+                         h5_file="cater_with_masks.hdf5",
+                         download=download, convert=convert)
+
+
+class ClevrWithMasks(MultiObjectDataset):
+
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
+
+        super().__init__(root=root, dataset="clevr_with_masks", version=None, split=split, ttv=ttv,
+                         tf_files=["clevr_with_masks_train.tfrecords"],
+                         tf_max_size=100000,  # 100k
+                         h5_file="clevr_with_masks.hdf5",
+                         download=download, convert=convert)
+
+
+class MultiDSprites(MultiObjectDataset):
+
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], version='colored_on_grayscale',
+                 download=True, convert=True) -> None:
+
+        versions = ['binarized', 'colored_on_colored', 'colored_on_grayscale']
+        assert version in versions, f"Unknown version: {version}. Available options are: {versions}"
+
+        super().__init__(root=root, dataset="multi_dsprites", version=version, split=split, ttv=ttv,
+                         tf_files=[f"multi_dsprites_{version}.tfrecords"],
+                         tf_max_size=1000000,  # 1m
+                         h5_file=f"multi_dsprites_{version}.hdf5",
+                         download=download, convert=convert)
+
+
+class ObjectsRoom(MultiObjectDataset):
+
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
+
+        splits = ['Train', 'Test', 'Val', 'empty_room', 'identical_color', 'six_objects']
+        assert split in splits, f"Unknown split: {split}. Available options are: {splits}"
+
+        if split in ['empty_room', 'identical_color', 'six_objects']:
+            print(f"INFO: '{split}' is a special out-of-distribution 'Test' split and will allways return as "
+                  f"ttv=[0, 922, 0], independent of the requested ttv.")
+            version = split
+            split, ttv, tf_max_size = "Test", [0, 922, 0], 922  # almost 1k
+            tf_files = [f"objects_room_test_{version}.tfrecords"]
+            h5_file = f"objects_room_test_{version}.hdf5"
+        else:
+            version = 'train'
+            tf_max_size = 1000000  # 1m
+            tf_files = ["objects_room_train.tfrecords"]
+            h5_file = "objects_room.hdf5"
+
+        super().__init__(root=root, dataset="objects_room", version=version, split=split, ttv=ttv,
+                         tf_files=tf_files,
+                         tf_max_size=tf_max_size,
+                         h5_file=h5_file,
+                         download=download, convert=convert)
+
+
+class Tetrominoes(MultiObjectDataset):
+
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
+
+        super().__init__(root=root, dataset="tetrominoes", version=None, split=split, ttv=ttv,
+                         tf_files=["tetrominoes_train.tfrecords"],
+                         tf_max_size=1000000,  # 1m
+                         h5_file="tetrominoes.hdf5",
+                         download=download, convert=convert)
