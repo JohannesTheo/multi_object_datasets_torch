@@ -3,6 +3,7 @@
 This repository is WIP
 
 - TODO: Write proper README
+- TODO: Add licence
 
 ### install dependencies
 
