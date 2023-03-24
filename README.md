@@ -42,3 +42,4 @@ print(t_train)
 
 - TODO: Add support for torchvision transforms 
 - TODO: Compare default splits from research papers and existing repos to set good default values
+- TODO: Port segmentation_metrics.py to torch
