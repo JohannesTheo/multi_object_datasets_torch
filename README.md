@@ -15,7 +15,7 @@ This repository is WIP
 
  # optional: the following deps are installed automatically but we show them here for transparency
  pip install h5py, tqdm, gsutil 
- pip install git+https://github.com/deepmind/multi_object_datasets.git@master 
+ pip install git+https://github.com/deepmind/multi_object_datasets.git@main
  ```
 
 ### install repository
