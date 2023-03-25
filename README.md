@@ -15,7 +15,7 @@ This repository is WIP
  pip install torch torchvision
 
  # optional: the following deps are installed automatically but we show them here for transparency
- pip install h5py, tqdm, gsutil 
+ pip install h5py, tqdm, numpy, gsutil 
  pip install git+https://github.com/deepmind/multi_object_datasets.git@master
  ```
 
@@ -41,6 +41,6 @@ print(t_train)
 
 ### code TODOs
 
-- TODO: Add support for torchvision transforms 
+- TODO: Add support for torchvision transforms
 - TODO: Compare default splits from research papers and existing repos to set good default values
 - TODO: Port segmentation_metrics.py to torch
