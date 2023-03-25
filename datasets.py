@@ -11,6 +11,7 @@ from typing import Sequence
 import h5py
 import numpy as np
 from tqdm import tqdm
+import torch
 from torchvision.datasets import VisionDataset
 # from multi_object_datasets import [?]: we do this dynamically in MultiObjectDataset.convert
 
@@ -91,7 +92,7 @@ class MultiObjectDataset(VisionDataset):
     def __getitem__(self, idx):
         data = self.get_h5_data()
         # TODO: apply potential transforms
-        return dict([(k, data[k][self.indices[idx]]) for k in data.keys()])
+        return dict([(k, torch.from_numpy(data[k][self.indices[idx]])) for k in data.keys()])
 
     def extra_repr(self) -> str:
 
