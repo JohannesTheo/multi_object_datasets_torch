@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Sequence
 
 import h5py
+import numpy as np
 from tqdm import tqdm
 from torchvision.datasets import VisionDataset
 # from multi_object_datasets import [?]: we do this dynamically in MultiObjectDataset.convert
@@ -60,6 +61,12 @@ class MultiObjectDataset(VisionDataset):
         self.h5_file = Path(self.root) / h5_file
         self.h5_data = None
         self.h5_size = None
+
+        # new shapes to convert channel format in self.convert()
+        # image:   HxWxC ->   CxHxW (cater has additional sequence dimension)
+        # masks: MxHxWxC -> MxCxHxW (cater has additional sequence dimension)
+        self._image_T =   (0, 3, 1, 2) if dataset == 'cater_with_masks' else    (2, 0, 1)
+        self._mask_T = (0, 1, 4, 2, 3) if dataset == 'cater_with_masks' else (0, 3, 1, 2)
 
         if self.h5_exists() and self.ttv_size <= self.get_h5_size():
             return
@@ -210,6 +217,10 @@ class MultiObjectDataset(VisionDataset):
                             # so we copy to ensure that the flags OWNDATA & WRITEABLE = True
                             # TODO: not sure if this is actually necessary as we write to h5
                             v = v.copy()
+
+                            # convert channel format from HxWxC to CxHxW (see __init__ for details)
+                            if k == 'image': v = np.transpose(v, axes=self._image_T)
+                            if k == 'mask':  v = np.transpose(v, axes=self._mask_T)
 
                             h5_data.require_dataset(k, shape=(size,) + v.shape, dtype=v.dtype,
                                                        chunks=(1,)   + v.shape, compression="gzip")
