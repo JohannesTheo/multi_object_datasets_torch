@@ -25,6 +25,7 @@ setup(
     install_requires=[
         'h5py',
         'tqdm',
+        'numpy',
         'gsutil',
         'multi-object-datasets @ git+https://github.com/deepmind/multi_object_datasets.git@master'
     ],
