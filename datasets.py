@@ -34,6 +34,7 @@ class MultiObjectDataset(VisionDataset):
     ) -> None:
         assert dataset in self.multi_object_datasets, f"Unknown dataset: {dataset}. " \
                                                       f"Available options are: {self.multi_object_datasets}"
+        split = split.capitalize()
         assert split in ['Train', 'Test', 'Val'],     f"Unknown split: '{split}'. " \
                                                       f"Available options are: {['Train', 'Test', 'Val']}"
         assert len(ttv) == 3,                         f"ttv has to be len 3. Given: {ttv} which is len {len(ttv)}"
