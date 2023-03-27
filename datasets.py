@@ -26,6 +26,7 @@ class MultiObjectDataset(VisionDataset):
             dataset: str,
             version: str | None,
             split: str,
+            features: Sequence[str],
             ttv: Sequence[int],
             tf_files: Sequence[str],
             tf_max_size: int,
@@ -49,6 +50,7 @@ class MultiObjectDataset(VisionDataset):
 
         self.version = version
         self.split = split
+        self.features = features
         self.ttv = ttv
         self.ttv_size = sum(ttv)
         self.indices = self.calc_split_indices()
@@ -254,6 +256,7 @@ class CaterWithMasks(MultiObjectDataset):
             print(f"WARNING: The intended train,test,val split is: [39364, 17100, 0] but you requested {ttv}")
 
         super().__init__(root=root, dataset="cater_with_masks", version=None, split=split, ttv=ttv,
+                         features = ['camera_matrix', 'image', 'mask', 'object_positions'],
                          tf_files=[f"cater_with_masks_{t}.tfrecords-{str(i).rjust(5, '0')}-of-00100" for
                                    t in ("train", "test") for i in range(0, 100)],
                          tf_max_size=56464,
@@ -266,6 +269,8 @@ class ClevrWithMasks(MultiObjectDataset):
     def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
 
         super().__init__(root=root, dataset="clevr_with_masks", version=None, split=split, ttv=ttv,
+                         features=['color', 'image', 'mask', 'material', 'pixel_coords', 'rotation', 'shape', 'size',
+                                   'visibility', 'x', 'y', 'z'],
                          tf_files=["clevr_with_masks_train.tfrecords"],
                          tf_max_size=100000,  # 100k
                          h5_file="clevr_with_masks.hdf5",
@@ -281,6 +286,7 @@ class MultiDSprites(MultiObjectDataset):
         assert version in versions, f"Unknown version: {version}. Available options are: {versions}"
 
         super().__init__(root=root, dataset="multi_dsprites", version=version, split=split, ttv=ttv,
+                         features=['color', 'image', 'mask', 'orientation', 'scale', 'shape', 'visibility', 'x', 'y'],
                          tf_files=[f"multi_dsprites_{version}.tfrecords"],
                          tf_max_size=1000000,  # 1m
                          h5_file=f"multi_dsprites_{version}.hdf5",
@@ -308,6 +314,7 @@ class ObjectsRoom(MultiObjectDataset):
             h5_file = "objects_room.hdf5"
 
         super().__init__(root=root, dataset="objects_room", version=version, split=split, ttv=ttv,
+                         features=['image', 'mask'],
                          tf_files=tf_files,
                          tf_max_size=tf_max_size,
                          h5_file=h5_file,
@@ -319,6 +326,7 @@ class Tetrominoes(MultiObjectDataset):
     def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
 
         super().__init__(root=root, dataset="tetrominoes", version=None, split=split, ttv=ttv,
+                         features=['color', 'image', 'mask', 'shape', 'visibility', 'x', 'y'],
                          tf_files=["tetrominoes_train.tfrecords"],
                          tf_max_size=1000000,  # 1m
                          h5_file="tetrominoes.hdf5",
