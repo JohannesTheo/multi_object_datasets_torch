@@ -40,7 +40,6 @@ Before release:
 
 - TODO: Write proper README
 - TODO: Add licence
-- TODO: Add support for torchvision transforms
 - TODO: Add example for Clevr Crop as used in IODINE, Genesis
 
 After release:
