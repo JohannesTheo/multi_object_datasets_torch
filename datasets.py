@@ -97,18 +97,25 @@ class MultiObjectDataset(VisionDataset):
 
     def __getitem__(self, idx):
         data = self.get_h5_data()
-        # TODO: apply potential transforms
-        return dict([(k, torch.from_numpy(data[k][self.indices[idx]])) for k in data.keys()])
+
+        # for every (feature) key, read data from h5 with an index lookup, convert it to a torch tensor and
+        # create a list of (key, value) tuples that are finally converted to a dict
+        d = dict([(k, torch.from_numpy(data[k][self.indices[idx]])) for k in data.keys()])
+
+        for k, transform in self.transforms.items():
+            d[k] = transform(d[k])
+
+        return d
 
     def extra_repr(self) -> str:
 
         v_repr = f"Version: {self.version}" if self.version is not None else ""
-        h_repr = ""  # f"H5 file: {self.h5_file.name} (converted {self.get_h5_size():,}/{self.tf_max_size:,} max)"
-        t_repr = f"Train,Test,Val: {self.ttv}"
+        h_repr = "" # f"H5 file: {self.h5_file.name} (converted {self.get_h5_size():,}/{self.tf_max_size:,} max)"
+        t_repr = "" # f"Train,Test,Val: {self.ttv}"
         s_repr = f"Split: {self.split}"
-        # TODO: repr for available features (as key list)
+        f_repr = f"Features: {self.features}"
 
-        return "\n".join([r for r in [v_repr, h_repr, t_repr, s_repr] if r])
+        return "\n".join([r for r in [v_repr, h_repr, t_repr, s_repr, f_repr] if r])
 
     def calc_split_indices(self) -> Sequence:
 
