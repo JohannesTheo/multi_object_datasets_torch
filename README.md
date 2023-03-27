@@ -41,6 +41,7 @@ Before release:
 - TODO: Write proper README
 - TODO: Add licence
 - TODO: Add example for Clevr Crop as used in IODINE, Genesis
+- TODO: Do a proper throughput test with a dataloader and batches 
 
 After release:
 
