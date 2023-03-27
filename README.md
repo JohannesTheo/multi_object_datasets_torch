@@ -2,12 +2,7 @@
 
 This repository is WIP
 
-- TODO: Write proper README
-- TODO: Add licence
-
 ### install dependencies
-
-- TODO: test with different (older) versions, in particular python, tf and torch
 
  ```bash
  # mandatory: install these manually
@@ -39,8 +34,17 @@ t_train = Tetrominoes("~/datasets")
 print(t_train)
 ```
 
-### code TODOs
+### TODOs
 
+Before release:
+
+- TODO: Write proper README
+- TODO: Add licence
 - TODO: Add support for torchvision transforms
-- TODO: Compare default splits from research papers and existing repos to set good default values
-- TODO: Port segmentation_metrics.py to torch
+- TODO: Add example for Clevr Crop as used in IODINE, Genesis
+
+After release:
+
+- TODO: Set good default values for split size (currently same as object-centric lib)
+- TODO: Port segmentation_metrics.py
+- TODO: test with different (older) versions of python, tf and torch, (h5, gsutil?)
