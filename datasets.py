@@ -6,7 +6,7 @@ import atexit
 import importlib
 import subprocess
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, Callable
 
 import h5py
 import numpy as np
@@ -26,8 +26,9 @@ class MultiObjectDataset(VisionDataset):
             dataset: str,
             version: str | None,
             split: str,
-            features: Sequence[str],
             ttv: Sequence[int],
+            features: Sequence[str],
+            transforms: dict[str, Callable],
             tf_files: Sequence[str],
             tf_max_size: int,
             h5_file: str,
@@ -44,6 +45,8 @@ class MultiObjectDataset(VisionDataset):
         assert sum(ttv) <= tf_max_size,               f"The requested [train,test,val] size is larger than the " \
                                                       f"available data: {ttv}={sum(ttv):,} > {tf_max_size:,} (max. " \
                                                       f"datapoints in tfrecord files)"
+        for k in transforms.keys():
+            assert k in features,                     f"Transforms key '{k}' not in available features: {features}"
 
         root = str(Path(root).expanduser().resolve() / "multi-object-datasets" / dataset)
         super().__init__(root)
@@ -51,6 +54,7 @@ class MultiObjectDataset(VisionDataset):
         self.version = version
         self.split = split
         self.features = features
+        self.transforms = transforms
         self.ttv = ttv
         self.ttv_size = sum(ttv)
         self.indices = self.calc_split_indices()
@@ -250,13 +254,14 @@ class MultiObjectDataset(VisionDataset):
 
 class CaterWithMasks(MultiObjectDataset):
 
-    def __init__(self, root, split='Train', ttv=[39364, 17100, 0], download=True, convert=True) -> None:
+    def __init__(self, root, split='Train', ttv=[39364, 17100, 0], transforms={}, download=True, convert=True) -> None:
 
         if ttv != [39364, 17100, 0]:
             print(f"WARNING: The intended train,test,val split is: [39364, 17100, 0] but you requested {ttv}")
 
         super().__init__(root=root, dataset="cater_with_masks", version=None, split=split, ttv=ttv,
                          features = ['camera_matrix', 'image', 'mask', 'object_positions'],
+                         transforms=transforms,
                          tf_files=[f"cater_with_masks_{t}.tfrecords-{str(i).rjust(5, '0')}-of-00100" for
                                    t in ("train", "test") for i in range(0, 100)],
                          tf_max_size=56464,
@@ -266,11 +271,12 @@ class CaterWithMasks(MultiObjectDataset):
 
 class ClevrWithMasks(MultiObjectDataset):
 
-    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], transforms={}, download=True, convert=True) -> None:
 
         super().__init__(root=root, dataset="clevr_with_masks", version=None, split=split, ttv=ttv,
                          features=['color', 'image', 'mask', 'material', 'pixel_coords', 'rotation', 'shape', 'size',
                                    'visibility', 'x', 'y', 'z'],
+                         transforms=transforms,
                          tf_files=["clevr_with_masks_train.tfrecords"],
                          tf_max_size=100000,  # 100k
                          h5_file="clevr_with_masks.hdf5",
@@ -279,7 +285,7 @@ class ClevrWithMasks(MultiObjectDataset):
 
 class MultiDSprites(MultiObjectDataset):
 
-    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], version='colored_on_grayscale',
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], transforms={}, version='colored_on_grayscale',
                  download=True, convert=True) -> None:
 
         versions = ['binarized', 'colored_on_colored', 'colored_on_grayscale']
@@ -287,6 +293,7 @@ class MultiDSprites(MultiObjectDataset):
 
         super().__init__(root=root, dataset="multi_dsprites", version=version, split=split, ttv=ttv,
                          features=['color', 'image', 'mask', 'orientation', 'scale', 'shape', 'visibility', 'x', 'y'],
+                         transforms=transforms,
                          tf_files=[f"multi_dsprites_{version}.tfrecords"],
                          tf_max_size=1000000,  # 1m
                          h5_file=f"multi_dsprites_{version}.hdf5",
@@ -295,7 +302,7 @@ class MultiDSprites(MultiObjectDataset):
 
 class ObjectsRoom(MultiObjectDataset):
 
-    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], transforms={}, download=True, convert=True) -> None:
 
         splits = ['Train', 'Test', 'Val', 'empty_room', 'identical_color', 'six_objects']
         assert split in splits, f"Unknown split: {split}. Available options are: {splits}"
@@ -314,7 +321,7 @@ class ObjectsRoom(MultiObjectDataset):
             h5_file = "objects_room.hdf5"
 
         super().__init__(root=root, dataset="objects_room", version=version, split=split, ttv=ttv,
-                         features=['image', 'mask'],
+                         features=['image', 'mask'], transforms=transforms,
                          tf_files=tf_files,
                          tf_max_size=tf_max_size,
                          h5_file=h5_file,
@@ -323,10 +330,11 @@ class ObjectsRoom(MultiObjectDataset):
 
 class Tetrominoes(MultiObjectDataset):
 
-    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], download=True, convert=True) -> None:
+    def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], transforms={}, download=True, convert=True) -> None:
 
         super().__init__(root=root, dataset="tetrominoes", version=None, split=split, ttv=ttv,
                          features=['color', 'image', 'mask', 'shape', 'visibility', 'x', 'y'],
+                         transforms=transforms,
                          tf_files=["tetrominoes_train.tfrecords"],
                          tf_max_size=1000000,  # 1m
                          h5_file="tetrominoes.hdf5",
