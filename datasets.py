@@ -109,6 +109,7 @@ class MultiObjectDataset(VisionDataset):
 
     def extra_repr(self) -> str:
 
+        # TODO: allow a verbose print with h5 and ttv info?
         v_repr = f"Version: {self.version}" if self.version is not None else ""
         h_repr = "" # f"H5 file: {self.h5_file.name} (converted {self.get_h5_size():,}/{self.tf_max_size:,} max)"
         t_repr = "" # f"Train,Test,Val: {self.ttv}"
