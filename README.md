@@ -241,6 +241,18 @@ training_data = ClevrWithMasks(
 'z'             [11]               torch.float32
 ```
 
+```python
+# Preprocessing from IODINE paper, see Supplementary PDF - B.1. CLEVR:
+# http://proceedings.mlr.press/v97/greff19a.html
+
+from torchvision import transforms
+
+transforms.Compose([
+    transforms.CenterCrop(192),
+    transforms.Resize(128)
+])
+```
+
 ### Tetrominoes
 
 The tfrecord file is ~300 MB in total with a max. of 1,000,000 samples.
@@ -312,7 +324,6 @@ Decomposition. Advances in Neural Information Processing Systems.
 
 ### Open TODOs
 
-- TODO: Add example for ClevrCrop
 - TODO: Do throughput test with a dataloader
 - TODO: Compare default split sizes to papers (currently same as object-centric lib)
 - TODO: Add segmentation_metrics.py
