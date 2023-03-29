@@ -33,7 +33,7 @@ The *howpublished* url is updated and links to this repository.
 
 The datasets are implemented as torch [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html#torchvision.datasets.VisionDataset). Therefore, they are as easy to use as other [built-in datasets](https://pytorch.org/vision/stable/datasets.html) in PyTorch. We automated the download process of the tfrecord files (using gsutil as described in the original repository). These files are then converted to hdf5 to eliminate tensorflow as a dependency after this step. 
 
-**Note that we convert the channel format of `'image'` and `'mask'` from `HxWxC` to `CxHxW`**. Apart from this change, data is identical to the source tfrecord files!
+**Note that we convert the channel format of `'image'` and `'mask'` from `HxWxC` to `CxHxW`**. Apart from this change, data remains identical to the source tfrecord files!
 
 There exist two notable alternatives to our implementation:
 
