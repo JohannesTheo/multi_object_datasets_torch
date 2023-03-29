@@ -141,7 +141,7 @@ Ensure to use transformations that expect `torch.Tensor` and `CxHxW` format (for
 
 ## Datasets Overview 
 
-This section is intended as technical reference (a summary of what you can expect from each dataset). If you are not familiar with the datasets in general, please read their descriptions here: [Multi-Object Datasets](https://github.com/deepmind/multi_object_datasets#descriptions)
+This section is intended as a technical reference, i.e. a short summary of what you can expect from each dataset. If you are not familiar with the datasets in general, please read their descriptions here: [Multi-Object Datasets](https://github.com/deepmind/multi_object_datasets#descriptions)
 
 ### Multi-dSprites
 
