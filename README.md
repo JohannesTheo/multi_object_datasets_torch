@@ -1,6 +1,6 @@
 # Multi-Object Datasets for PyTorch
 
-This repository contains an **easy-to-use** PyTorch version of [Multi-Object Datasets](https://github.com/deepmind/multi_object_datasets) for multi-object representation learning, used in developing scene decomposition methods like [MONet](https://arxiv.org/abs/1901.11390) [1], [IODINE](http://proceedings.mlr.press/v97/greff19a.html) [2], and [SIMONe](https://papers.nips.cc/paper/2021/hash/a860a7886d7c7e2a8d3eaac96f76dc0d-Abstract.html) [3]. The datasets we provide are (literally) the same as in the original tensorflow repository:
+This repository contains an **easy-to-use** PyTorch version of [Multi-Object Datasets](https://github.com/deepmind/multi_object_datasets) for multi-object representation learning, used in developing scene decomposition methods like [MONet](https://arxiv.org/abs/1901.11390) [1], [IODINE](http://proceedings.mlr.press/v97/greff19a.html) [2], and [SIMONe](https://papers.nips.cc/paper/2021/hash/a860a7886d7c7e2a8d3eaac96f76dc0d-Abstract.html) [3]. The datasets we provide are (literally) the same as the original tensorflow repository:
 
 1. [Multi-dSprites](#multi-dsprites)
 2. [Objects Room](#objects-room)
