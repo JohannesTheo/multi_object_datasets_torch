@@ -34,7 +34,6 @@ class MultiObjectDataset(VisionDataset):
             h5_file: str,
             download: bool,
             convert: bool
-            # TODO: transforms: dict
     ) -> None:
         assert dataset in self.multi_object_datasets, f"Unknown dataset: {dataset}. " \
                                                       f"Available options are: {self.multi_object_datasets}"
