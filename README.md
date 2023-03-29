@@ -319,4 +319,3 @@ Decomposition. Advances in Neural Information Processing Systems.
 - TODO: Do test with different (older) versions of python, tf and torch
 - TODO: Do provide converted hdf5 files for download?
 - TODO: Fix capitalization of split in ObjectRoom
-- TODO: Fix version of train split in ObjectRoom
