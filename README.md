@@ -10,7 +10,7 @@ This repository contains an **easy-to-use** PyTorch version of [Multi-Object Dat
 
 ![preview](preview.gif)
 
-If you are not familiar with these datasets, please read their descriptions here: [Multi-Object Datasets](https://github.com/deepmind/multi_object_datasets#readme), as we only provide short, technical summaries of the data.
+If you are not familiar with these datasets, please read their descriptions here first: [Multi-Object Datasets](https://github.com/deepmind/multi_object_datasets#multi-object-datasets)
 
 ## Bibtex
 
