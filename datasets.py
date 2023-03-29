@@ -312,8 +312,10 @@ class ObjectsRoom(MultiObjectDataset):
 
     def __init__(self, root, split='Train', ttv=[90000, 5000, 5000], transforms={}, download=True, convert=True) -> None:
 
-        splits = ['Train', 'Test', 'Val', 'empty_room', 'identical_color', 'six_objects']
-        assert split in splits, f"Unknown split: {split}. Available options are: {splits}"
+        norm_splits = ['Train', 'Test', 'Val']
+        ood_splits = ['empty_room', 'identical_color', 'six_objects']
+        assert split.capitalize() in norm_splits or split in ood_splits, f"Unknown split: {split}. Available options " \
+                                                                         f"are: {norm_splits} or {ood_splits}"
 
         if split in ['empty_room', 'identical_color', 'six_objects']:
             print(f"INFO: '{split}' is a special out-of-distribution 'Test' split and will allways return as "
