@@ -14,7 +14,7 @@ If you are not familiar with these datasets, please read their descriptions here
 
 ## Bibtex
 
-If you use one of these datasets in your work, please cite the original authors as follows (we only changed the *howpublished* url):
+If you use one of these datasets in your work, please cite the original authors as follows:
 
 ```
 @misc{multiobjectdatasets19,
@@ -27,14 +27,20 @@ If you use one of these datasets in your work, please cite the original authors 
 }
 ```
 
+The *howpublished* url is updated and links to this repository.
+
 ## How it works & difference to the tf version
 
-The datasets are implemented as torch [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html#torchvision.datasets.VisionDataset). Therefore, they are as easy to use as other [built-in datasets](https://pytorch.org/vision/stable/datasets.html) in PyTorch. We automated the download process of the tfrecord files as described in the original repository (using gsutil). These files are then converted to hdf5 to eliminate tensorflow as a dependency after this step. **Note that we convert the channel format of `'image'` and `'mask'` from `HxWxC` to `CxHxW`**. Apart from this change, data is identical to the source tfrecord files!
+The datasets are implemented as torch [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html#torchvision.datasets.VisionDataset). Therefore, they are as easy to use as other [built-in datasets](https://pytorch.org/vision/stable/datasets.html) in PyTorch. We automated the download process of the tfrecord files (using gsutil as described in the original repository). These files are then converted to hdf5 to eliminate tensorflow as a dependency after this step. 
 
-There exist two notable alternatives to our implementation. They are slightly more complicated to use if you are only interested in the datasets but provide additional code to train some really cool models, if this is what you are looking for:
+**Note that we convert the channel format of `'image'` and `'mask'` from `HxWxC` to `CxHxW`**. Apart from this change, data is identical to the source tfrecord files!
+
+There exist two notable alternatives to our implementation:
 
 1. [Object-Centric Library](https://github.com/addtt/object-centric-library)
 2. [Genesis and Genesis-V2](https://github.com/applied-ai-lab/genesis)
+
+If you are only interested in the datasets, they are slightly more complicated to use BUT, they provide additional code to train some really cool models if this is what you are looking for.
 
 ## Installation
 
@@ -65,7 +71,7 @@ pip install -e ./multi_object_datasets_torch/
 
 ## Basic Usage
 
-After import, the datasets can be used in the same way as other built-in VisionDatasets: 
+After import, the datasets can be used in the same way as other built-in VisionDatasets in PyTorch: 
 
 ```python
 from multi_object_datasets_torch import MultiDSprites, ObjectsRoom, ClevrWithMasks, Tetrominoes, CaterWithMasks    
@@ -128,7 +134,7 @@ training_transforms = {
 training_data = ObjectsRoom("~/datasets", transforms=training_transforms)
 ```
 
-Ensure to use transformations that allow for (or expect) `torch.Tensor` and `CxHxW` format for `'image'` and `'mask'`:
+Ensure to use transformations that expect `torch.Tensor` and `CxHxW` format (for `'image'` and `'mask'`):
 
 - [Transforms on PIL Image and torch.*Tensor](https://pytorch.org/vision/0.14/transforms.html#transforms-on-pil-image-and-torch-tensor) 
 - [Transforms on torch.*Tensor only](https://pytorch.org/vision/0.14/transforms.html#transforms-on-torch-tensor-only)
