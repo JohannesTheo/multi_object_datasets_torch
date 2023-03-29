@@ -323,7 +323,7 @@ class ObjectsRoom(MultiObjectDataset):
             tf_files = [f"objects_room_test_{version}.tfrecords"]
             h5_file = f"objects_room_test_{version}.hdf5"
         else:
-            version = 'train'
+            version = None
             tf_max_size = 1000000  # 1m
             tf_files = ["objects_room_train.tfrecords"]
             h5_file = "objects_room.hdf5"
