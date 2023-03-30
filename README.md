@@ -324,8 +324,7 @@ Decomposition. Advances in Neural Information Processing Systems.
 
 ### Open TODOs
 
-- TODO: Do throughput test with a dataloader
 - TODO: Compare default split sizes to papers (currently same as object-centric lib)
-- TODO: Add segmentation_metrics.py
-- TODO: Do test with different (older) versions of python, tf and torch
-- TODO: Do provide converted hdf5 files for download?
+- TODO: Add `segmentation_metrics.py`
+- TODO: Do explicit tests with older versions of python, tf and torch.
+- TODO: Should we provide already converted hdf5 files? I'm open for suggestions where to host such files :)
