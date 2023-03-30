@@ -306,7 +306,7 @@ training_data = CaterWithMasks(
 'object_positions'  [33, 11, 3]          torch.float32
 ``` 
 
-> Please note that the usual `torchvision.transforms` are implemented for images and might not work as expected for sequences! 
+> Please note that the usual `torchvision.transforms` are implemented for images and might not work as expected for sequences with `dim() > 4`, e.g. the `'mask'` sequence!
  
 ## References
 
