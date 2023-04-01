@@ -249,7 +249,7 @@ from torchvision import transforms
 
 transforms.Compose([
     transforms.CenterCrop(192),
-    transforms.Resize(128)
+    transforms.Resize(128, transforms.InterpolationMode.NEAREST)
 ])
 ```
 
@@ -306,7 +306,7 @@ training_data = CaterWithMasks(
 'object_positions'  [33, 11, 3]          torch.float32
 ``` 
 
-> Please note that the usual `torchvision.transforms` are implemented for images and might not work as expected for sequences with `dim() > 4`, e.g. the `'mask'` sequence!
+> Note that the 'mask' Tensor in cater is now 5-dimensional and not all `torchvision.transforms` can handle that *out of the box*. For instance, [`transforms.Resize`](https://pytorch.org/vision/main/generated/torchvision.transforms.Resize.html) is *only* implemented for 3- and 4-dimensional Tensors. In such cases, either implement a custom solution (e.g. apply sequentially) or, if possible, switch to e.g. [`transforms.v2.Resize`](pytorch.org/vision/main/generated/torchvision.transforms.v2.Resize.html) which can have an arbitrary number of leading batch dimensions.
  
 ## References
 
