@@ -33,14 +33,14 @@ The *howpublished* url is updated and links to this repository.
 
 The datasets are implemented as torch [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html#torchvision.datasets.VisionDataset). Therefore, they are as easy to use as other [built-in datasets](https://pytorch.org/vision/stable/datasets.html) in PyTorch. We automated the download process of the tfrecord files (using gsutil as described in the original repository). These files are then converted to hdf5 to eliminate tensorflow as a dependency after this step. 
 
-**Note that we convert the channel format of `'image'` and `'mask'` from `HxWxC` to `CxHxW`**. Apart from this change, data remains identical to the source tfrecord files!
+**Note that we convert the channel format of `'image'` and `'mask'` from `HxWxC` to `CxHxW`. In practice, this means you should use [`torchvision.transforms.ConvertImageDtype`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ConvertImageDtype.html)** instead of the common [`torchvision.transforms.ToTensor`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ToTensor.html) for your images. Apart from this change, data remains identical to the source tfrecord files!
 
 There exist two notable alternatives to our implementation:
 
 1. [Object-Centric Library](https://github.com/addtt/object-centric-library)
 2. [Genesis and Genesis-V2](https://github.com/applied-ai-lab/genesis)
 
-If you are only interested in the datasets, they are slightly more complicated to use BUT, they provide additional code to train some really cool models if this is what you are looking for.
+They are slightly more complicated to get started BUT, they provide additional code to train some really cool models if this is what you are looking for!
 
 ## Installation
 
@@ -124,20 +124,60 @@ print(training_data[0])
 If you want to apply transforms to these features, you can do so by providing a matching dict:
 
 ```python
-from torchvision import transforms
+from torchvision import transforms as T
 
 training_transforms = {
-    'image': transforms.CenterCrop(32), 
-     'mask': transforms.CenterCrop(32)
+    'image': T.CenterCrop(32),
+     'mask': T.CenterCrop(32)
 }
 
 training_data = ObjectsRoom("~/datasets", transforms=training_transforms)
 ```
 
-Ensure to use transformations that expect `torch.Tensor` and `CxHxW` format (for `'image'` and `'mask'`):
+**Please note that images are of shape `CxHxW` with `dtype=torch.uint8` in range `0-255`. Instead of the common [`ToTensor`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ToTensor.html) transform, simply use [`ConvertImageDtype`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ConvertImageDtype.html) to cast and rescale them to some  `float` type and range `0-1`**, e.g. like so:
+
+```python
+import torch
+from torchvision import transforms as T
+
+img_transforms = T.Compose([
+    T.ConvertImageDtype(torch.float32),
+    T.CenterCrop(32)
+])
+
+training_transforms = {
+    'image':  img_transforms
+}
+```
+
+In general, ensure to use transformations that expect `torch.Tensor` and `CxHxW` format (for `'image'` and `'mask'`):
 
 - [Transforms on PIL Image and torch.*Tensor](https://pytorch.org/vision/0.14/transforms.html#transforms-on-pil-image-and-torch-tensor) 
 - [Transforms on torch.*Tensor only](https://pytorch.org/vision/0.14/transforms.html#transforms-on-torch-tensor-only)
+
+## Evaluation
+
+You can compare predicted object segmentation masks with the ground-truth masks using `segmentation_metrics.adjusted_rand_index` as below:
+
+```python
+from multi_object_datasets_torch import reshape_labels_onehot, random_predictions_like, adjusted_rand_index
+
+# the dataset/loader returns labels with shape: [batch_size, max_num_entities, channels, height, width]
+masks = next(iter(test_dataloader))['mask']
+
+# the ari method requires labels and predictions with shape: [batch_size, n_points, n_true_groups]
+# where n_points = (channels*height*width) and n_true_groups = max_num_entities
+true_groups_oh = reshape_labels_onehot(masks)
+random_prediction_oh = random_predictions_like(masks)
+
+ari = adjusted_rand_index(true_groups_oh, random_prediction_oh)
+```
+
+To exclude all background pixels from the ARI score (as in [2]), you can compute it as follows instead. This assumes the first true group contains all background pixels:
+
+```python
+ari_nobg = adjusted_rand_index(true_groups_oh[..., 1:], random_prediction_oh)
+```
 
 ## Datasets Overview 
 
@@ -245,11 +285,11 @@ training_data = ClevrWithMasks(
 # Preprocessing from IODINE paper, see Supplementary PDF - B.1. CLEVR:
 # http://proceedings.mlr.press/v97/greff19a.html
 
-from torchvision import transforms
+from torchvision import transforms as T
 
-transforms.Compose([
-    transforms.CenterCrop(192),
-    transforms.Resize(128, transforms.InterpolationMode.NEAREST)
+T.Compose([
+    T.CenterCrop(192),
+    T.Resize(128, T.InterpolationMode.NEAREST)
 ])
 ```
 
@@ -323,10 +363,3 @@ International Conference on Machine Learning, in PMLR 97:2424-2433.
 Lerchner, A., & Burgess, C. P. (2021). SIMONe: View-Invariant,
 Temporally-Abstracted Object Representations via Unsupervised Video
 Decomposition. Advances in Neural Information Processing Systems.
-
-### Open TODOs
-
-- TODO: Compare default split sizes to papers (currently same as object-centric lib)
-- TODO: Add `segmentation_metrics.py`
-- TODO: Do explicit tests with older versions of python, tf and torch.
-- TODO: Should we provide already converted hdf5 files? I'm open for suggestions where to host such files :)
