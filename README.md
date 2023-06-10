@@ -134,7 +134,7 @@ training_transforms = {
 training_data = ObjectsRoom("~/datasets", transforms=training_transforms)
 ```
 
-**Please note that images are of shape `CxHxW` with `dtype=torch.uint8` in range `0-255`. Instead of the common [`ToTensor`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ToTensor.html) transform, simply use [`ConvertImageDtype`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ConvertImageDtype.html) to cast and rescale them to some  `float` type and range `0-1`**, e.g. like so:
+**Please note that images (and masks) are of shape `CxHxW` with `dtype=torch.uint8` in range `0-255`. Instead of the common [`ToTensor`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ToTensor.html) transform, simply use [`ConvertImageDtype`](https://pytorch.org/vision/stable/generated/torchvision.transforms.ConvertImageDtype.html) to cast and rescale them to some  `float` type and range `0-1`**, e.g. like so:
 
 ```python
 import torch
