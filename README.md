@@ -160,23 +160,42 @@ In general, ensure to use transformations that expect `torch.Tensor` and `CxHxW`
 You can compare predicted object segmentation masks with the ground-truth masks using `segmentation_metrics.adjusted_rand_index` as below:
 
 ```python
-from multi_object_datasets_torch import reshape_labels_onehot, random_predictions_like, adjusted_rand_index
+from multi_object_datasets_torch import reshape_labels_onehot, adjusted_rand_index
+from multi_object_datasets_torch import random_predictions_like
 
-# the dataset/loader returns labels with shape: [batch_size, max_num_entities, channels, height, width]
+# the dataset/loader returns labels with shape: 
+# [batch_size, max_num_entities, channels, height, width]
 masks = next(iter(test_dataloader))['mask']
 
-# the ari method requires labels and predictions with shape: [batch_size, n_points, n_true_groups]
-# where n_points = (channels*height*width) and n_true_groups = max_num_entities
+# the ari method requires labels and predictions to be one-hot with shape: 
+# [batch_size, n_points, n_true_groups]
+# where:
+#   n_points = (channels*height*width) and
+#   n_true_groups = max_num_entities
 true_groups_oh = reshape_labels_onehot(masks)
-random_prediction_oh = random_predictions_like(masks)
+rand_preds_oh  = random_predictions_like(masks, 'onehot')
 
-ari = adjusted_rand_index(true_groups_oh, random_prediction_oh)
+ari = adjusted_rand_index(true_groups_oh, rand_preds_oh)
 ```
 
-To exclude all background pixels from the ARI score (as in [2]), you can compute it as follows instead. This assumes the first true group contains all background pixels:
+To exclude all background pixels from the **ARI score** (as in [2]), you can compute it as follows instead. This assumes the first true group contains all background pixels:
 
 ```python
-ari_nobg = adjusted_rand_index(true_groups_oh[..., 1:], random_prediction_oh)
+ari_nobg = adjusted_rand_index(true_groups_oh[..., 1:], rand_preds_oh)
+```
+
+In addition, you can calculate the **segmentation covering (SC)** and **unweighted mean segmentation covering (mSC) scores** (as in [4]) with `segmentation_metrics.average_segcover` as below:
+
+```python
+from multi_object_datasets_torch import average_segcover
+
+# the sc method requires labels and predictions to be categorical (integer encoded) with shape:
+# [batch_size, 1, height, width]
+# which can be done with a simple argmax on the max_num_entities dimension (for the labels):
+true_groups_cat = masks.argmax(dim=1)
+rand_preds_cat  = random_predictions_like(masks, 'categorical')
+
+mean_sc, scaled_sc = average_segcover(true_groups_cat, rand_preds_cat, ignore_background=False)
 ```
 
 ## Datasets Overview 
@@ -363,3 +382,7 @@ International Conference on Machine Learning, in PMLR 97:2424-2433.
 Lerchner, A., & Burgess, C. P. (2021). SIMONe: View-Invariant,
 Temporally-Abstracted Object Representations via Unsupervised Video
 Decomposition. Advances in Neural Information Processing Systems.
+
+[4] Engelcke M., Kosiorek A. R., Parker Jones O., Posner I., (2020). GENESIS:
+Generative Scene Inference and Sampling with Object-Centric Latent Representations.
+International Conference on Learning Representations
