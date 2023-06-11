@@ -3,38 +3,47 @@ import torch.nn.functional as F
 
 
 def reshape_labels_onehot(true_groups):
-  r"""Reshapes a batch of masks as returned from the dataset/loader to the format requested by the ari method.
+    r"""Reshapes a batch of masks as returned from the dataset/loader to the format requested by the ari method.
 
-  Input shape:  [batch_size, max_num_entities, channels, height, width]
-  Output shape: [batch_size, (channels*height*width), max_num_entities] or in ari terms:
-                [batch_size, n_points, n_true_groups]
-  """
-  batch_size, max_num_entities, channels, height, width = true_groups.shape
-  desired_shape = [batch_size, channels * height * width, max_num_entities]
+    Input shape:  [batch_size, max_num_entities, channels, height, width]
+    Output shape: [batch_size, (channels*height*width), max_num_entities] or in ari terms:
+                  [batch_size, n_points, n_true_groups]
+    """
+    batch_size, max_num_entities, channels, height, width = true_groups.shape
+    desired_shape = [batch_size, channels * height * width, max_num_entities]
 
-  true_groups_oh = torch.permute(true_groups, [0, 2, 3, 4, 1])
-  true_groups_oh = torch.reshape(true_groups_oh, desired_shape)
+    true_groups_oh = torch.permute(true_groups, [0, 2, 3, 4, 1])
+    true_groups_oh = torch.reshape(true_groups_oh, desired_shape)
 
-  return true_groups_oh
-
-
-def random_predictions_like(true_groups):
-  r"""This method takes a batch of masks as returned from the dataset/loader and returns a matching batch of
-      random predictions in the format requested by the ari method.
-
-  Input shape:  [batch_size, max_num_entities, channels, height, width]
-  Output shape: [batch_size, n_points, n_true_groups]
-  """
-  batch_size, max_num_entities, channels, height, width = true_groups.shape
-  desired_shape = [batch_size, height * width, max_num_entities]
-
-  random_prediction = torch.randint(low=0, high=max_num_entities, size=desired_shape[:-1])
-  random_prediction = F.one_hot(random_prediction, max_num_entities)
-
-  return random_prediction
+    return true_groups_oh
 
 
-# the following code is a direct tf-to-torch port of:
+def random_predictions_like(true_groups, encoding: str):
+    r"""This method takes a batch of masks from the dataset/loader and returns a matching batch of
+      random predictions in the format requested by 'encoding'. Can be either *one-hot* for the ari
+      method or *categorical* for the sc scores.
+
+    Input shape:              [batch_size, max_num_entities, channels, height, width]
+    Output shape onehot:      [batch_size, n_points, n_true_groups]
+    Output shape categorical: [batch_size, 1, height, width]
+    """
+    assert encoding in ['oh', 'onehot', 'one-hot', 'cat', 'categorical'], f"Unsupported encoding: {encoding}. " \
+                                                                          f"Must be one of ['oh','onehot','one-hot'] " \
+                                                                          f"or ['cat','categorical']."
+
+    if encoding in ['oh', 'onehot', 'one-hot']:
+        batch_size, max_num_entities, channels, height, width = true_groups.shape
+        desired_shape = [batch_size, height * width, max_num_entities]
+
+        random_prediction = torch.randint(low=0, high=max_num_entities, size=desired_shape[:-1])
+        random_prediction = F.one_hot(random_prediction, max_num_entities)
+
+        return random_prediction
+    elif encoding in ['cat', 'categorical']:
+        return torch.argmax(torch.rand(true_groups.shape), dim=1)
+
+
+# tf-to-torch port of:
 # https://github.com/deepmind/multi_object_datasets/blob/9c670cd630940b9f8f5b0e9728472201a50a3370/segmentation_metrics.py#L20
 def adjusted_rand_index(true_mask, pred_mask, name='ari_score'):
     r"""Computes the adjusted Rand index (ARI), a clustering similarity score.
@@ -111,6 +120,86 @@ def adjusted_rand_index(true_mask, pred_mask, name='ari_score'):
     return torch.where(both_single_cluster, torch.ones_like(ari), ari)
 
 
+# tf-to-torch port of:
+# https://github.com/deepmind/multi_object_datasets/blob/9c670cd630940b9f8f5b0e9728472201a50a3370/segmentation_metrics.py#L95
 def _all_equal(values):
     """Whether values are all equal along the final axis."""
     return torch.all(torch.eq(values, values[..., :1]), dim=-1)
+
+
+# source: https://github.com/applied-ai-lab/genesis/blob/9abf202bbad6fa4a675117fdea0be163e4f16695/utils/misc.py#L162
+def iou_binary(mask_A, mask_B):
+    assert mask_A.shape == mask_B.shape
+    assert mask_A.dtype == torch.bool
+    assert mask_B.dtype == torch.bool
+    intersection = (mask_A * mask_B).sum((1, 2, 3))
+    union = (mask_A + mask_B).sum((1, 2, 3))
+    # Return -100 if union is zero, else return IOU
+    return torch.where(union == 0, torch.tensor(-100.0),
+                       intersection.float() / union.float())
+
+
+# source: https://github.com/applied-ai-lab/genesis/blob/9abf202bbad6fa4a675117fdea0be163e4f16695/utils/misc.py#L173
+def average_segcover(segA, segB, ignore_background=False):
+    """
+    Covering of segA by segB
+    segA.shape = [batch size, 1, img_dim1, img_dim2]
+    segB.shape = [batch size, 1, img_dim1, img_dim2]
+
+    scale: If true, take weighted mean over IOU values proportional to the
+           the number of pixels of the mask being covered.
+
+    Assumes labels in segA and segB are non-negative integers.
+    Negative labels will be ignored.
+    """
+
+    assert segA.shape == segB.shape, f"{segA.shape} - {segB.shape}"
+    assert segA.shape[1] == 1 and segB.shape[1] == 1
+    bsz = segA.shape[0]
+    nonignore = (segA >= 0)
+
+    mean_scores = torch.tensor(bsz*[0.0])
+    N = torch.tensor(bsz*[0])
+    scaled_scores = torch.tensor(bsz*[0.0])
+    scaling_sum = torch.tensor(bsz*[0])
+
+    # Find unique label indices to iterate over
+    if ignore_background:
+        iter_segA = torch.unique(segA[segA > 0]).tolist()
+    else:
+        iter_segA = torch.unique(segA[segA >= 0]).tolist()
+    iter_segB = torch.unique(segB[segB >= 0]).tolist()
+    # Loop over segA
+    for i in iter_segA:
+        binaryA = segA == i
+        if not binaryA.any():
+            continue
+        max_iou = torch.tensor(bsz*[0.0])
+        # Loop over segB to find max IOU
+        for j in iter_segB:
+            # Do not penalise pixels that are in ignore regions
+            binaryB = (segB == j) * nonignore
+            if not binaryB.any():
+                continue
+            iou = iou_binary(binaryA, binaryB)
+            max_iou = torch.where(iou > max_iou, iou, max_iou)
+        # Accumulate scores
+        mean_scores += max_iou
+        N = torch.where(binaryA.sum((1, 2, 3)) > 0, N+1, N)
+        scaled_scores += binaryA.sum((1, 2, 3)).float() * max_iou
+        scaling_sum += binaryA.sum((1, 2, 3))
+
+    # Compute coverage
+    mean_sc = mean_scores / torch.max(N, torch.tensor(1)).float()
+    scaled_sc = scaled_scores / torch.max(scaling_sum, torch.tensor(1)).float()
+
+    # Sanity check
+    assert (mean_sc >= 0).all() and (mean_sc <= 1).all(), mean_sc
+    assert (scaled_sc >= 0).all() and (scaled_sc <= 1).all(), scaled_sc
+    assert (mean_scores[N == 0] == 0).all()
+    assert (mean_scores[nonignore.sum((1, 2, 3)) == 0] == 0).all()
+    assert (scaled_scores[N == 0] == 0).all()
+    assert (scaled_scores[nonignore.sum((1, 2, 3)) == 0] == 0).all()
+
+    # Return mean over batch dimension
+    return mean_sc.mean(0), scaled_sc.mean(0)
