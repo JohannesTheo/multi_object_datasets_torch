@@ -1,5 +1,7 @@
 import torch
 import torch.nn.functional as F
+from scipy.optimize import linear_sum_assignment
+import numpy as np
 
 
 def reshape_labels_onehot(true_groups):
@@ -202,4 +204,31 @@ def average_segcover(segA, segB, ignore_background=False):
     assert (scaled_scores[nonignore.sum((1, 2, 3)) == 0] == 0).all()
 
     # Return mean over batch dimension
+    # mean_sc is mSC, scaled_sc is SC (scaled by mask size)
     return mean_sc.mean(0), scaled_sc.mean(0)
+
+
+# source: https://github.com/pairlab/SlotFormer/blob/5d97e8779aa98ffdfb3d5506accb6bf110b5cac4/slotformer/video_prediction/vp_utils.py#LL225C1-L243C50
+def hungarian_miou(gt_mask, pred_mask, ignore_background=False):
+    """both mask: [H*W] after argmax, 0 is gt background index."""
+
+    if ignore_background:
+        true_oh = F.one_hot(gt_mask).float()[..., 1:]  # only foreground, [HW, N]
+    else:
+        true_oh = F.one_hot(gt_mask).float() # keep background mask, [HW, N]
+    pred_oh = F.one_hot(pred_mask).float()  # [HW, M]
+    N, M = true_oh.shape[-1], pred_oh.shape[-1]
+    # compute all pairwise IoU
+    intersect = (true_oh[:, :, None] * pred_oh[:, None, :]).sum(0)  # [N, M]
+    union = true_oh.sum(0)[:, None] + pred_oh.sum(0)[None, :]  # [N, M]
+    iou = intersect / (union + 1e-8)  # [N, M]
+    iou = iou.detach().cpu().numpy()
+    # find the best match for each gt
+    row_ind, col_ind = linear_sum_assignment(iou, maximize=True)
+    # there are two possibilities here
+    #   1. M >= N, just take the best match mean
+    #   2. M < N, some objects are not detected, their iou is 0
+    if M >= N:
+        assert (row_ind == np.arange(N)).all()
+        return iou[row_ind, col_ind].mean()
+    return iou[row_ind, col_ind].sum() / float(N)
