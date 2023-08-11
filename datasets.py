@@ -104,6 +104,9 @@ class MultiObjectDataset(VisionDataset):
         for k, transform in self.transforms.items():
             d[k] = transform(d[k])
 
+        # add true image id for reference, e.g. needed in COCO format
+        d['image_id'] = self.indices[idx]
+
         return d
 
     def extra_repr(self) -> str:
