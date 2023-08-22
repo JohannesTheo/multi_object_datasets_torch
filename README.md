@@ -160,7 +160,7 @@ In general, ensure to use transformations that expect `torch.Tensor` and `CxHxW`
 You can compare predicted object segmentation masks with the ground-truth masks using `segmentation_metrics.adjusted_rand_index` as below:
 
 ```python
-from multi_object_datasets_torch import reshape_labels_onehot, adjusted_rand_index
+from multi_object_datasets_torch import flatten_and_one_hot, adjusted_rand_index
 from multi_object_datasets_torch import random_predictions_like
 
 # the dataset/loader returns labels with shape: 
@@ -172,7 +172,7 @@ masks = next(iter(test_dataloader))['mask']
 # where:
 #   n_points = (channels*height*width) and
 #   n_true_groups = max_num_entities
-true_groups_oh = reshape_labels_onehot(masks)
+true_groups_oh = flatten_and_one_hot(masks)
 rand_preds_oh  = random_predictions_like(masks, 'onehot')
 
 ari = adjusted_rand_index(true_groups_oh, rand_preds_oh)
@@ -181,7 +181,8 @@ ari = adjusted_rand_index(true_groups_oh, rand_preds_oh)
 To exclude all background pixels from the **ARI score** (as in [2]), you can compute it as follows instead. This assumes the first true group contains all background pixels:
 
 ```python
-ari_nobg = adjusted_rand_index(true_groups_oh[..., 1:], rand_preds_oh)
+# internally, this will set true_groups_oh = true_groups_oh[..., 1:]
+ari_fg = adjusted_rand_index(true_groups_oh, rand_preds_oh, ignore_background=True)
 ```
 
 In addition, you can calculate the **segmentation covering (SC)** and **unweighted mean segmentation covering (mSC) scores** (as in [4]) with `segmentation_metrics.average_segcover` as below:

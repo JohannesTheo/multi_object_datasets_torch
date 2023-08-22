@@ -4,7 +4,7 @@ from scipy.optimize import linear_sum_assignment
 import numpy as np
 
 
-def reshape_labels_onehot(true_groups):
+def flatten_and_one_hot(true_groups):
     r"""Reshapes a batch of masks as returned from the dataset/loader to the format requested by the ari method.
 
     Input shape:  [batch_size, max_num_entities, channels, height, width]
@@ -47,7 +47,8 @@ def random_predictions_like(true_groups, encoding: str):
 
 # tf-to-torch port of:
 # https://github.com/deepmind/multi_object_datasets/blob/9c670cd630940b9f8f5b0e9728472201a50a3370/segmentation_metrics.py#L20
-def adjusted_rand_index(true_mask, pred_mask, name='ari_score'):
+# We added the ignore_background argument to be consistent with the other metrics methods
+def adjusted_rand_index(true_mask, pred_mask, ignore_background=False, name='ari_score'):
     r"""Computes the adjusted Rand index (ARI), a clustering similarity score.
 
       This implementation ignores points with no cluster label in `true_mask` (i.e.
@@ -80,6 +81,9 @@ def adjusted_rand_index(true_mask, pred_mask, name='ari_score'):
           http://scikit-learn.org/stable/modules/generated/\
           sklearn.metrics.adjusted_rand_score.html
     """
+    if ignore_background:
+        true_mask = true_mask[...,1:]
+
     _, n_points, n_true_groups = true_mask.shape
     n_pred_groups = pred_mask.shape[-1]
     if n_points <= n_true_groups and n_points <= n_pred_groups:
