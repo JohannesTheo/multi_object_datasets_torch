@@ -209,7 +209,8 @@ def average_segcover(segA, segB, ignore_background=False):
 
     # Return mean over batch dimension
     # mean_sc is mSC, scaled_sc is SC (scaled by mask size)
-    return mean_sc.mean(0), scaled_sc.mean(0)
+    #return mean_sc.mean(0), scaled_sc.mean(0)
+    return mean_sc, scaled_sc
 
 
 # source: https://github.com/pairlab/SlotFormer/blob/5d97e8779aa98ffdfb3d5506accb6bf110b5cac4/slotformer/video_prediction/vp_utils.py#LL225C1-L243C50
