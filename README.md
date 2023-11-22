@@ -52,7 +52,7 @@ First, you have to install **pytorch** and **tensorflow** manually:
  pip install torch torchvision
 
  # optional deps: these are installed automatically but we show them here for transparency
- pip install h5py, tqdm, numpy, gsutil 
+ pip install h5py tqdm numpy gsutil
  pip install git+https://github.com/deepmind/multi_object_datasets.git@master
  ```
 
